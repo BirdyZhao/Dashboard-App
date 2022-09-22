@@ -39,6 +39,7 @@ def get_data():
     
 try:
     df = get_data()
+
 #get multiselects    
     with st.sidebar:
         programs = st.sidebar.multiselect("Please choose at least one programs", set(df['Program']), ["Community","Youth",'Reentry'])
@@ -284,10 +285,29 @@ try:
             rty_zip.rename(columns={'Client Name':'Number of clients'})
             st.dataframe(rty_zip)
 
-
-#time animation registration date
+# education plot
+    
+    edu_data = dt.groupby(['Program','Race','Education']).count()['Client Name'].reset_index()
+    for i in range(len(edu_data)):
+        if edu_data['Education'][i] == '' or edu_data['Education'][i] == 'NA':
+            edu_data['Education'][i] = None
+    edu_data = edu_data.dropna()
+    edu_data['Sum'] = edu_data['Client Name']
+    
+    fig_edu = px.sunburst(edu_data, path=['Education', 'Race','Program'], values='Sum',title='Cross Analysis of Education, Race and Program')
+    st.plotly_chart(fig_edu)
+    
+    fig5 = px.pie(edu_data, values='Sum', names='Education',title='Education of Clients')
+    st.plotly_chart(fig5,use_container_width=True)
+    
+    
+    
+    
+    #time animation registration date
+    
     st.write('Clients growth line')
     st.sidebar.write('Clients growth line (at the page bottom)')
+    
 #generate days
     regs_data = pd.DataFrame({'Client Name':df['Client Name'],
                               'Date':pd.to_datetime(df['Date Enrolled'])})
@@ -314,28 +334,24 @@ try:
     all_days['Date'] =all_days['Date'].apply(lambda x:x.strftime('%F'))
     all_days = all_days.set_index('Date')
  #plot animated line chart   
-    if st.sidebar.button('Start'):
-        progress_bar = st.sidebar.progress(0)
-        status_text = st.sidebar.empty()
-        last_rows = all_days[0:(len(all_days_Regs)%20)]
-        chart = st.line_chart(data = last_rows)
+    progress_bar = st.sidebar.progress(0)
+    status_text = st.sidebar.empty()
+    last_rows = all_days[0:(len(all_days_Regs)%20)]
+    chart = st.line_chart(data = last_rows)
 
-        for i in range(1, 101):
-            new_rows = all_days[((len(all_days_Regs)%20)+20*(i-1)):((len(all_days_Regs)%20)+20*i)]
-            status_text.text("%i%% Complete" % i)
-            chart.add_rows(new_rows)
-            progress_bar.progress(i)
-            last_rows = new_rows
-            time.sleep(0.08)
-        progress_bar.empty()
-        st.sidebar.button("Re-run")
+    for i in range(1, 101):
+        new_rows = all_days[((len(all_days_Regs)%20)+20*(i-1)):((len(all_days_Regs)%20)+20*i)]
+        status_text.text("%i%% Complete" % i)
+        chart.add_rows(new_rows)
+        progress_bar.progress(i)
+        last_rows = new_rows
+        time.sleep(0.08)
+    progress_bar.empty()
+    st.sidebar.button("Re-run")
     
 # Streamlit widgets automatically run the script from top to bottom. Since
 # this button is not connected to any other logic, it just causes a plain
 # rerun.
-    
-
-
 except URLError as e:
     st.error(
         """
@@ -344,4 +360,4 @@ except URLError as e:
     """
         % e.reason
     )
-    
+  
