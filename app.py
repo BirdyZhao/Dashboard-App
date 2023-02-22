@@ -20,7 +20,7 @@ st.title('Reach Success Dashboard')
 
 @st.cache
 def get_data():
-    data = knackpy.get(app_id="5fa9ddc2a23bbc001575a2e5", api_key="ee61146f-3fbc-46b8-ac8b-e76433898192", obj="object_1")
+    data = knackpy.get(app_id="", api_key="", obj="object_1")
  #app.containers
     data = pd.DataFrame(data)
     a = data['field_21_raw']
